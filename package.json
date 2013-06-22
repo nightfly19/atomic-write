@@ -1,0 +1,22 @@
+{
+  "name": "atomic-file",
+  "version": "0.1.0",
+  "description": "Provides an atomic implementation of fs.writeFile",
+  "main": "index.js",
+  "dependencies": {
+    "md5": "*",
+    "underscore": "*"
+  },
+  "keywords": [
+    "atomic",
+    "write",
+    "fs",
+    "rename"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "https://github.com/nightfly19/atomic-write",
+  "author": "Sage Imel",
+  "license": "BSD"
+}
