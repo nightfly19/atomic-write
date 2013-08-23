@@ -1,15 +1,37 @@
 # Atomic Write
 
-Provides an atomic implementation of writeFile.
+Provides atomic implementation of fs.writeFile by first writing to a temporary file and renaming to the final destination. 
 
 ## Caveats
 
 This is only garenteeed to be atomic on local filesystems. And only when the temporary directory is on the same filesystem as the actual file to be written. And possibly only on some kernels.
 
-## API
+## Quickstart
 
-* *WriteFile*
-Provides atomic file writes/replacement by first writing to a temporary file and renaming to the final destination. 
+```javascript
+var aWrite = require('atomic-write');
+
+//writeFile has the same interface as fs.writeFile
+aWrite.writeFile('/tmp/file', 'example data', function(err, result){
+  if(err){
+    return console.log(err);
+  }
+  
+  console.log("File written");
+}
+```
+
+## Module API
+
+* *writeFile(filename, data, options, callback)*
+Atomically write a file.
+
+* *Context()*
+Constructor that creates a new atomic-write context where you can change the implementation of atomic-write's internal functions can be changed without effecting the global atomic-write context.
+
+## Internal functions
+
+These functions can be re-implemented in new Contexts if atomic-writes defaults don't suite your task.
 
 * *tempDirectory(filePath, cb)*
 Yields the directory in which the temporary file will be created.
@@ -30,3 +52,4 @@ In the default implemenation if tempFilename already exists
 tempFilePath will be called recursively with the same arguments 
 until a unique filename is found.
 If your implemenation of tempFilename is purely functional your gonna have a bad time.
+
