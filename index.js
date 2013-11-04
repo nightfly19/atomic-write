@@ -69,6 +69,32 @@ Context.prototype.writeFile = function(filename, data, options, callback){
   });
 };
 
+Context.prototype.createWriteStream = function (path, options){
+  if(arguments.length < 2){
+    options = {};
+  }
+  options.fd = 3; // prevent writestream.open
+  var stream = fs.createWriteStream(null, options);
+  stream.fd = null; // reset fd
+  this.tempFilePath(path, function(err, tempPath){
+    if(err){
+      return stream.emit('error', err);
+    }
+    console.log("open writestream %s (%s)", tempPath, path);
+    stream.path = tempPath;
+    stream.open();
+    stream.on('close', function(){
+      fs.rename(tempPath, path, function(err){
+        if(err){
+          return stream.emit('error', err);
+        }
+        stream.emit('done');
+      });
+    });
+  });
+  return stream;
+};
+
 Context.prototype.Context = Context;
 
 module.exports = new Context();
