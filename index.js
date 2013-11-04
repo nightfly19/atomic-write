@@ -80,7 +80,6 @@ Context.prototype.createWriteStream = function (path, options){
     if(err){
       return stream.emit('error', err);
     }
-    console.log("open writestream %s (%s)", tempPath, path);
     stream.path = tempPath;
     stream.open();
     stream.on('close', function(){
