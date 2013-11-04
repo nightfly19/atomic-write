@@ -3,9 +3,6 @@
   "version": "0.1.1",
   "description": "Provides an atomic implementation of fs.writeFile",
   "main": "index.js",
-  "dependencies": {
-    "md5": "*",
-  },
   "keywords": [
     "atomic",
     "write",

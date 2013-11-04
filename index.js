@@ -1,6 +1,12 @@
 var path = require('path'),
 fs = require('fs'),
-md5 = require('md5');
+crypto = require('crypto');
+
+function md5(data) {
+  var sum = crypto.createHash('md5');
+  sum.update(data);
+  return sum.digest('hex');
+}
 
 Context = function(){
 };
@@ -17,7 +23,7 @@ Context.prototype.tempDirectory = function(filePath, cb){
 Context.prototype.tempFileName = function(filePath, cb){
   try{
     var prefix = String(Date.now()) + filePath;
-    var hashedPrefix = md5.digest_s(prefix);
+    var hashedPrefix = md5(prefix);
     var name = "." + hashedPrefix + "." + path.basename(filePath);
     return cb(null, path.basename(name));
   }
