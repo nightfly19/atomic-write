@@ -8,7 +8,8 @@ function md5(data) {
   return sum.digest('hex');
 }
 
-Context = function(){
+Context = function(retry){
+    this.retry = retry || 50;
 };
 
 Context.prototype.tempDirectory = function(filePath, cb){
@@ -22,7 +23,8 @@ Context.prototype.tempFileName = function(filePath, cb){
   return cb(null, path.basename(name));
 };
 
-Context.prototype.tempFilePath = function(filePath, cb){
+Context.prototype.tempFilePath = function(filePath, cb, i){
+  i = i || 0;
   var manager = this;
   manager.tempDirectory(filePath, function(err, dirPath){
     if(err){
@@ -35,7 +37,10 @@ Context.prototype.tempFilePath = function(filePath, cb){
       var tempPath = path.join(dirPath, filePath);
       fs.exists(tempPath,function(exists){
         if(exists){
-          return ;manager.tempFilePath(filepath, cb);
+          if (i == manager.retry){
+            return cb("retry limit " + manager.retry + " reached");
+          }
+          manager.tempFilePath(filepath, cb, i++);
         }
         return cb(null, tempPath);
       });
