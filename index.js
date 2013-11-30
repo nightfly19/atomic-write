@@ -1,32 +1,30 @@
 var path = require('path'),
 fs = require('fs'),
-md5 = require('md5');
+crypto = require('crypto');
 
-Context = function(){
+function md5(data) {
+  var sum = crypto.createHash('md5');
+  sum.update(data);
+  return sum.digest('hex');
+}
+
+Context = function(retry){
+    this.retry = retry || 50;
 };
 
 Context.prototype.tempDirectory = function(filePath, cb){
-  try{
-    return cb(null, path.dirname(filePath));
-  }
-  catch(e){
-    return cb(e);
-  }
+  return cb(null, path.dirname(filePath));
 };
 
 Context.prototype.tempFileName = function(filePath, cb){
-  try{
-    var prefix = String(Date.now()) + filePath;
-    var hashedPrefix = md5.digest_s(prefix);
-    var name = "." + hashedPrefix + "." + path.basename(filePath);
-    return cb(null, path.basename(name));
-  }
-  catch(e){
-    return cb(e);
-  }
+  var prefix = String(Date.now()) + filePath;
+  var hashedPrefix = md5(prefix);
+  var name = "." + hashedPrefix + "." + path.basename(filePath);
+  return cb(null, path.basename(name));
 };
 
-Context.prototype.tempFilePath = function(filePath, cb){
+Context.prototype.tempFilePath = function(filePath, cb, i){
+  i = i || 0;
   var manager = this;
   manager.tempDirectory(filePath, function(err, dirPath){
     if(err){
@@ -39,7 +37,10 @@ Context.prototype.tempFilePath = function(filePath, cb){
       var tempPath = path.join(dirPath, filePath);
       fs.exists(tempPath,function(exists){
         if(exists){
-          return ;manager.tempFilePath(filepath, cb);
+          if (i == manager.retry){
+            return cb("retry limit " + manager.retry + " reached");
+          }
+          manager.tempFilePath(filepath, cb, i++);
         }
         return cb(null, tempPath);
       });
@@ -66,6 +67,31 @@ Context.prototype.writeFile = function(filename, data, options, callback){
       });
     });
   });
+};
+
+Context.prototype.createWriteStream = function (path, options){
+  if(arguments.length < 2){
+    options = {};
+  }
+  options.fd = 3; // prevent writestream.open
+  var stream = fs.createWriteStream(null, options);
+  stream.fd = null; // reset fd
+  this.tempFilePath(path, function(err, tempPath){
+    if(err){
+      return stream.emit('error', err);
+    }
+    stream.path = tempPath;
+    stream.open();
+    stream.on('close', function(){
+      fs.rename(tempPath, path, function(err){
+        if(err){
+          return stream.emit('error', err);
+        }
+        stream.emit('done');
+      });
+    });
+  });
+  return stream;
 };
 
 Context.prototype.Context = Context;
