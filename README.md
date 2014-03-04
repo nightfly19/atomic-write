@@ -18,7 +18,7 @@ aWrite.writeFile('/tmp/file', 'example data', function(err, result){
   }
   
   console.log("File written");
-}
+});
 ```
 
 ## Module API
